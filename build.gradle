@@ -95,12 +95,12 @@ apply plugin: 'maven-publish'
 
 publishing {
     publications {
-	    shadowJar(MavenPublication) {
-			groupId group
-			artifactId artifact
-			version version
-		    from components.java
-	    }
+        shadowJar(MavenPublication) { publication ->
+            project.shadow.component(publication)
+            groupId = project.group
+            artifactId = project.artifact
+            version = project.version
+        }
     }
 }
 
