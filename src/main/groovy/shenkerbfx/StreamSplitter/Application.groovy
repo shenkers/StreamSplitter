@@ -50,9 +50,9 @@ class SplitCommand implements Callable<Integer> {
         BufferedWriter out = new BufferedWriter(new OutputStreamWriter(System.out));
         String line = scan.readLine();
         int NR=1;
-        int nChunks=split.n;
-        int chunkSize=split.chunkSize;
-        int chunk=split.chunk;
+        int nChunks=n;
+        int chunkSize=chunkSize;
+        int chunk=chunk;
         while(line!=null){
 
             if((NR-1)%(nChunks*chunkSize)>=chunk*chunkSize && (NR-1)%(nChunks*chunkSize) < (chunk+1)*chunkSize){
