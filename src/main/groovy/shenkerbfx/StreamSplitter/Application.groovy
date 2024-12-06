@@ -59,30 +59,45 @@ class SplitCommand implements Callable<Integer> {
 //			@Parameter(names="-a", description="number of zeros to pad the output", converter=IntegerConverter.class)
 //			Integer a=3;
 
+    private InputStream getInputStream() {
+        if (input == null) {
+            return System.in
+        }
+        return new FileInputStream(input)
+    }
+
+    private InputStream maybeDecompress(InputStream input) {
+        if (decompress) {
+            return new GzipCompressorInputStream(input)
+        }
+        return input
+    }
+
+    private BufferedReader createReader(InputStream input) {
+        return new BufferedReader(new InputStreamReader(input))
+    }
+
+    private OutputStream createOutputStream(int index) {
+        def baseStream = new FileOutputStream(Util.sprintf("${base}.%0${a}d%s", index, compress ? ".gz" : ""))
+        if (compress) {
+            return new GzipCompressorOutputStream(baseStream)
+        }
+        return baseStream
+    }
+
+    private BufferedWriter createWriter(int index) {
+        return new BufferedWriter(new OutputStreamWriter(createOutputStream(index)))
+    }
+
     @Override
     public Integer call() throws Exception {
-        BufferedReader scan
-        if (input != null) {
-            // If input file is specified, use it
-            InputStream inputStream = new FileInputStream(input)
-            // Apply gzip decompression if requested
-            if (decompress) {
-                inputStream = new GzipCompressorInputStream(inputStream)
-            }
-            scan = new BufferedReader(new InputStreamReader(inputStream))
-        } else {
-            // If no input file specified, use stdin
-            scan = new BufferedReader(new InputStreamReader(System.in))
-        }
-        BufferedWriter[] bw = new BufferedWriter[n];
-        for(int i=0; i<n; i++){
-
-            OutputStream fos = null;
-            if(compress)
-                fos = new GzipCompressorOutputStream(new FileOutputStream(Util.sprintf("${base}.%0${a}d.gz",i)));
-            else
-                fos = new FileOutputStream(Util.sprintf("${base}.%0${a}d",i));
-            bw[i] = new BufferedWriter(new OutputStreamWriter(fos));
+        // Get input reader
+        BufferedReader scan = createReader(maybeDecompress(getInputStream()))
+        
+        // Create output writers
+        BufferedWriter[] bw = new BufferedWriter[n]
+        for(int i = 0; i < n; i++) {
+            bw[i] = createWriter(i)
         }
 
         String line = scan.readLine();
