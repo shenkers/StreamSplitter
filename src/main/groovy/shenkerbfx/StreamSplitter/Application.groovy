@@ -14,6 +14,8 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+
 import java.util.concurrent.Callable
 
 @Slf4j
@@ -35,36 +37,67 @@ class Application {
 @Command(name = 'Split')
 class SplitCommand implements Callable<Integer> {
 
-    @CommandLine.Option(names=["--chunk", "-c"], description="0 based index of the chunk", required=true)
-    Integer chunk;
-
     @CommandLine.Option(names=["--chunk-size", "-s"], description="number of lines in a chunk", required=true)
     Integer chunkSize;
 
     @CommandLine.Option(names=["--num-chunks", "-n"], description="number of chunks to split", required=true)
     Integer n;
 
+    @CommandLine.Option(names=["--basename", "-b"], description="base-name for the generated output", required=true)
+    String base = "split";
+
+    @CommandLine.Option(names=["--gunzip-input"], description="whether the input needs to be gzip-decompressed", negatable=true)
+    Boolean decompress = true;
+
+    @CommandLine.Option(names=["--gzip-output"], description="whether the output should be gzipped", negatable=true)
+    Boolean compress = true;
+
+    @CommandLine.Parameters(arity="1", description="path specifying the file to be split. If no file is provided will read from /dev/stdin.")
+    File input = null;
+
+//			@Parameter(names="-a", description="number of zeros to pad the output", converter=IntegerConverter.class)
+//			Integer a=3;
+
     @Override
     public Integer call() throws Exception {
         BufferedReader scan = new BufferedReader(new InputStreamReader(System.in));
-        BufferedWriter out = new BufferedWriter(new OutputStreamWriter(System.out));
+        BufferedWriter[] bw = new BufferedWriter[n];
+        for(int i=0; i<n; i++){
+
+            OutputStream fos = null;
+            if(gzip)
+                fos = new GzipCompressorOutputStream(new FileOutputStream(Util.sprintf("${base}.%0${a}d.gz",i)));
+            else
+                fos = new FileOutputStream(Util.sprintf("${base}.%0${a}d",i));
+            bw[i] = new BufferedWriter(new OutputStreamWriter(fos));
+        }
+
         String line = scan.readLine();
-        int NR=1;
+
         int nChunks=n;
         int chunkSize=chunkSize;
-        int chunk=chunk;
+        int chunk_i=0;
+        int line_i=0;
         while(line!=null){
+            bw[chunk_i].write(line);
+            bw[chunk_i].write('\n');
 
-            if((NR-1)%(nChunks*chunkSize)>=chunk*chunkSize && (NR-1)%(nChunks*chunkSize) < (chunk+1)*chunkSize){
-                out.write(line);
-                out.write('\n');
+            line_i++;
+
+            if(chunkSize==line_i){
+                line_i=0;
+                chunk_i++;
+            }
+            if(nChunks==chunk_i){
+                chunk_i=0;
             }
 
-            line = scan.readLine();;
-            NR++;
+            line = scan.readLine();
         }
 
         scan.close();
-        out.close();
+        for(int i=0; i<n; i++){
+            bw[i].close();
+        }
     }
 }
