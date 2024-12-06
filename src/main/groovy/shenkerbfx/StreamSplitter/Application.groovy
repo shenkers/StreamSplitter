@@ -53,7 +53,7 @@ class SplitCommand implements Callable<Integer> {
     @CommandLine.Option(names=["--gzip-output"], description="whether the output should be gzipped", negatable=true)
     Boolean compress = true;
 
-    @CommandLine.Parameters(arity="1", description="path specifying the file to be split. If no file is provided will read from /dev/stdin.")
+    @CommandLine.Parameters(arity="0..1", description="path specifying the file to be split. If no file is provided will read from /dev/stdin.")
     File input = null;
 
 
@@ -98,7 +98,7 @@ class SplitCommand implements Callable<Integer> {
     public Integer call() throws Exception {
         // Get input reader
         BufferedReader scan = createReader(maybeDecompress(getInputStream()))
-        
+
         // Create output writers
         BufferedWriter[] bw = new BufferedWriter[n]
         for(int i = 0; i < n; i++) {
