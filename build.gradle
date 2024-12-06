@@ -95,7 +95,7 @@ apply plugin: 'maven-publish'
 
 publishing {
     publications {
-	    mavenJava(MavenPublication) {
+	    shadowJar(MavenPublication) {
 			groupId group
 			artifactId artifact
 			version version
