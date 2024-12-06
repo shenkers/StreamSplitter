@@ -65,8 +65,8 @@ class SplitCommand implements Callable<Integer> {
         if (input != null) {
             // If input file is specified, use it
             InputStream inputStream = new FileInputStream(input)
-            // Apply gzip decompression if needed
-            if (decompress && input.name.endsWith('.gz')) {
+            // Apply gzip decompression if requested
+            if (decompress) {
                 inputStream = new GzipCompressorInputStream(inputStream)
             }
             scan = new BufferedReader(new InputStreamReader(inputStream))
