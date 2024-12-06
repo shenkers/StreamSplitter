@@ -35,13 +35,13 @@ class Application {
 @Command(name = 'Split')
 class SplitCommand implements Callable<Integer> {
 
-    @CommandLine.Option(names=["-chunk"], description="0 based index of the chunk", required=true)
+    @CommandLine.Option(names=["--chunk", "-c"], description="0 based index of the chunk", required=true)
     Integer chunk;
 
-    @CommandLine.Option(names=["-chunkSize"], description="number of lines in a chunk", required=true)
+    @CommandLine.Option(names=["--chunk-size", "-s"], description="number of lines in a chunk", required=true)
     Integer chunkSize;
 
-    @CommandLine.Option(names=["-n"], description="number of chunks to split", required=true)
+    @CommandLine.Option(names=["--num-chunks", "-n"], description="number of chunks to split", required=true)
     Integer n;
 
     @Override
