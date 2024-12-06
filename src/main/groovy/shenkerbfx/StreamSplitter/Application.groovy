@@ -15,6 +15,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
+import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 import java.util.concurrent.Callable
 
@@ -60,12 +61,24 @@ class SplitCommand implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        BufferedReader scan = new BufferedReader(new InputStreamReader(System.in));
+        BufferedReader scan
+        if (input != null) {
+            // If input file is specified, use it
+            InputStream inputStream = new FileInputStream(input)
+            // Apply gzip decompression if needed
+            if (decompress && input.name.endsWith('.gz')) {
+                inputStream = new GzipCompressorInputStream(inputStream)
+            }
+            scan = new BufferedReader(new InputStreamReader(inputStream))
+        } else {
+            // If no input file specified, use stdin
+            scan = new BufferedReader(new InputStreamReader(System.in))
+        }
         BufferedWriter[] bw = new BufferedWriter[n];
         for(int i=0; i<n; i++){
 
             OutputStream fos = null;
-            if(gzip)
+            if(compress)
                 fos = new GzipCompressorOutputStream(new FileOutputStream(Util.sprintf("${base}.%0${a}d.gz",i)));
             else
                 fos = new FileOutputStream(Util.sprintf("${base}.%0${a}d",i));
