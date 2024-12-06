@@ -24,16 +24,6 @@ class Application {
         CommandLine commandLine = new CommandLine(new SplitCommand());
         commandLine.registerConverter(File.class, PathResolver::resolveFile);
 
-        if (args.length == 0 || Arrays.equals(args, new String[]{"-h"}) || Arrays.equals(args, new String[]{"--help"})) {
-            commandLine.usage(System.err);
-            System.err.println();
-            commandLine.getSubcommands().values().forEach(command -> {
-                command.usage(System.err);
-                System.err.println();
-            });
-            System.exit(1);
-        }
-
         commandLine.setExecutionStrategy(new CommandLine.RunLast());
         int exitCode = commandLine.execute(args);
 
