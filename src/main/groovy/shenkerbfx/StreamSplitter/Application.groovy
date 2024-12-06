@@ -56,8 +56,6 @@ class SplitCommand implements Callable<Integer> {
     @CommandLine.Parameters(arity="1", description="path specifying the file to be split. If no file is provided will read from /dev/stdin.")
     File input = null;
 
-//			@Parameter(names="-a", description="number of zeros to pad the output", converter=IntegerConverter.class)
-//			Integer a=3;
 
     private InputStream getInputStream() {
         if (input == null) {
@@ -77,8 +75,15 @@ class SplitCommand implements Callable<Integer> {
         return new BufferedReader(new InputStreamReader(input))
     }
 
+    private int calculatePadding() {
+        // For n splits, we need floor(log10(n)) + 1 digits total
+        // So we need floor(log10(n)) zeros for padding
+        return (int)Math.floor(Math.log10(n))
+    }
+
     private OutputStream createOutputStream(int index) {
-        def baseStream = new FileOutputStream(Util.sprintf("${base}.%0${a}d%s", index, compress ? ".gz" : ""))
+        int padding = calculatePadding()
+        def baseStream = new FileOutputStream(String.format("${base}.%0${padding + 1}d%s", index, compress ? ".gz" : ""))
         if (compress) {
             return new GzipCompressorOutputStream(baseStream)
         }
