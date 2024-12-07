@@ -28,7 +28,6 @@ import java.util.concurrent.CompletableFuture
 class Application {
 
     def static main(args) {
-        log.info "hello world"
         CommandLine commandLine = new CommandLine(new SplitCommand());
         commandLine.registerConverter(File.class, PathResolver::resolveFile);
 
@@ -46,7 +45,7 @@ class SplitCommand implements Callable<Integer> {
     @CommandLine.Option(names=["--lines-per-chunk", "-k"], description="number of lines in a chunk", required=true)
     Integer chunkSize;
 
-    @CommandLine.Option(names=["--num-chunks", "-n"], description="number of chunks to split", required=true)
+    @CommandLine.Option(names=["--num-split", "-n"], description="number of chunks to split", required=true)
     Integer n;
 
     @CommandLine.Option(names=["--basename", "-b"], description="base-name for the generated output", required=true)
