@@ -19,6 +19,10 @@ import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream;
 import org.apache.commons.compress.compressors.gzip.GzipCompressorInputStream;
 
 import java.util.concurrent.Callable
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
+import java.util.concurrent.Future
+import java.util.concurrent.CompletableFuture
 
 @Slf4j
 class Application {
@@ -77,32 +81,35 @@ class SplitCommand implements Callable<Integer> {
     }
 
     private int calculatePadding() {
-        // For n splits, we need floor(log10(n)) + 1 digits total
-        // So we need floor(log10(n)) zeros for padding
         return (int)Math.floor(Math.log10(n))
     }
 
     private OutputStream createOutputStream(int index) {
         int padding = calculatePadding()
-        def baseStream = new BufferedOutputStream(
-            new FileOutputStream(String.format("${base}.%0${padding + 1}d%s", index, compress ? ".gz" : ""))
+        return new BufferedOutputStream(
+            new FileOutputStream(String.format("${base}.%0${padding + 1}d", index))
         )
-        if (compress) {
-            return new GzipCompressorOutputStream(baseStream)
-        }
-        return baseStream
     }
 
     private Writer createWriter(int index) {
         return new OutputStreamWriter(createOutputStream(index))
     }
 
+    private void compressFile(File inputFile, File outputFile) {
+        inputFile.withInputStream { input ->
+            outputFile.withOutputStream { output ->
+                def gzipOut = new GzipCompressorOutputStream(new BufferedOutputStream(output))
+                input.transferTo(gzipOut)
+                gzipOut.close()
+            }
+        }
+        inputFile.delete()
+    }
+
     @Override
     public Integer call() throws Exception {
-        // Get input reader
+        // Phase 1: Split files (no compression)
         BufferedReader scan = createReader(maybeDecompress(getInputStream()))
-
-        // Create output writers
         Writer[] bw = new Writer[n]
         for(int i = 0; i < n; i++) {
             bw[i] = createWriter(i)
@@ -135,5 +142,28 @@ class SplitCommand implements Callable<Integer> {
         for(int i=0; i<n; i++){
             bw[i].close();
         }
+
+        // Phase 2: Compression (if requested)
+        if (compress) {
+            ExecutorService executor = Executors.newFixedThreadPool(Runtime.runtime.availableProcessors())
+            List<Future<?>> compressionTasks = []
+            
+            for(int i = 0; i < n; i++) {
+                int padding = calculatePadding()
+                File inputFile = new File(String.format("${base}.%0${padding + 1}d", i))
+                File outputFile = new File(String.format("${base}.%0${padding + 1}d.gz", i))
+                
+                compressionTasks.add(
+                    CompletableFuture.runAsync({
+                        compressFile(inputFile, outputFile)
+                    }, executor)
+                )
+            }
+
+            compressionTasks.each { it.get() }
+            executor.shutdown()
+        }
+
+        return 0
     }
 }
