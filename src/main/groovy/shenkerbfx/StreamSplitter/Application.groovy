@@ -48,13 +48,13 @@ class SplitCommand implements Callable<Integer> {
     String base = "split";
 
     @CommandLine.Option(names=["--gunzip-input"], description="whether the input needs to be gzip-decompressed", negatable=true)
-    Boolean decompress = true;
+    Boolean decompress;
 
     @CommandLine.Option(names=["--gzip-output"], description="whether the output should be gzipped", negatable=true)
-    Boolean compress = true;
+    Boolean compress;
 
     @CommandLine.Parameters(arity="0..1", description="path specifying the file to be split. If no file is provided will read from /dev/stdin.")
-    File input = null;
+    File input;
 
 
     private InputStream getInputStream() {
