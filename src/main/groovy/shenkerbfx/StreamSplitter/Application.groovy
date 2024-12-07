@@ -42,7 +42,7 @@ class Application {
 @Command(name = 'Split')
 class SplitCommand implements Callable<Integer> {
 
-    @CommandLine.Option(names=["--lines-per-chunk", "-k"], description="number of lines in a chunk", required=true)
+    @CommandLine.Option(names=["--lines-per-record", "-k"], description="number of lines in a chunk", required=true)
     Integer chunkSize;
 
     @CommandLine.Option(names=["--num-split", "-n"], description="number of chunks to split", required=true)
