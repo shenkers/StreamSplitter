@@ -43,7 +43,7 @@ class Application {
 @Command(name = 'Split')
 class SplitCommand implements Callable<Integer> {
 
-    @CommandLine.Option(names=["--chunk-size", "-s"], description="number of lines in a chunk", required=true)
+    @CommandLine.Option(names=["--lines-per-chunk", "-k"], description="number of lines in a chunk", required=true)
     Integer chunkSize;
 
     @CommandLine.Option(names=["--num-chunks", "-n"], description="number of chunks to split", required=true)
@@ -147,12 +147,12 @@ class SplitCommand implements Callable<Integer> {
         if (compress) {
             ExecutorService executor = Executors.newFixedThreadPool(Runtime.runtime.availableProcessors())
             List<Future<?>> compressionTasks = []
-            
+
             for(int i = 0; i < n; i++) {
                 int padding = calculatePadding()
                 File inputFile = new File(String.format("${base}.%0${padding + 1}d", i))
                 File outputFile = new File(String.format("${base}.%0${padding + 1}d.gz", i))
-                
+
                 compressionTasks.add(
                     CompletableFuture.runAsync({
                         compressFile(inputFile, outputFile)
