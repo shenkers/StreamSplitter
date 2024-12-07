@@ -7,7 +7,8 @@ import picocli.CommandLine.Command
 import shenkers.path.PathResolver
 
 import java.io.BufferedReader;
-import java.io.BufferedWriter;
+import java.io.BufferedOutputStream;
+import java.io.Writer;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -83,15 +84,17 @@ class SplitCommand implements Callable<Integer> {
 
     private OutputStream createOutputStream(int index) {
         int padding = calculatePadding()
-        def baseStream = new FileOutputStream(String.format("${base}.%0${padding + 1}d%s", index, compress ? ".gz" : ""))
+        def baseStream = new BufferedOutputStream(
+            new FileOutputStream(String.format("${base}.%0${padding + 1}d%s", index, compress ? ".gz" : ""))
+        )
         if (compress) {
             return new GzipCompressorOutputStream(baseStream)
         }
         return baseStream
     }
 
-    private BufferedWriter createWriter(int index) {
-        return new BufferedWriter(new OutputStreamWriter(createOutputStream(index)))
+    private Writer createWriter(int index) {
+        return new OutputStreamWriter(createOutputStream(index))
     }
 
     @Override
@@ -100,7 +103,7 @@ class SplitCommand implements Callable<Integer> {
         BufferedReader scan = createReader(maybeDecompress(getInputStream()))
 
         // Create output writers
-        BufferedWriter[] bw = new BufferedWriter[n]
+        Writer[] bw = new Writer[n]
         for(int i = 0; i < n; i++) {
             bw[i] = createWriter(i)
         }
