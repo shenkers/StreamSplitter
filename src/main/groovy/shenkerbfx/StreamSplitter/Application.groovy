@@ -4,7 +4,7 @@ import groovy.util.logging.Slf4j
 
 import picocli.CommandLine
 import picocli.CommandLine.Command
-import shenkers.path.PathResolver
+import shenkerbfx.path.PathResolver
 
 import java.io.BufferedReader;
 import java.io.BufferedOutputStream;
