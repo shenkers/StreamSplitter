@@ -70,7 +70,8 @@ class SplitCommand implements Callable<Integer> {
 
     private InputStream maybeDecompress(InputStream input) {
         if (decompress) {
-            return new GzipCompressorInputStream(input)
+            def decompressConcatenated = true
+            return new GzipCompressorInputStream(input, decompressConcatenated )
         }
         return input
     }
