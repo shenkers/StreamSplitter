@@ -76,6 +76,7 @@ release {
         failOnSnapshotDependencies = false
         git {
             requireBranch = 'main'
+            pushTags = true
         }
 }
 
