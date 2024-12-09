@@ -1,12 +1,9 @@
 name: Create Release
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number for this release'
-        required: true
-        type: string
+  push:
+    tags:
+      - '*'
 
 jobs:
   build:
